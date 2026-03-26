@@ -137,6 +137,9 @@ export function CardForm({ card, members, themes, cardTypes, onSave, onCancel }:
             />
           </div>
         ))}
+        <div style={{ marginTop: 12, display: "flex", justifyContent: "center" }}>
+          <button type="button" onClick={addGroup} style={styles.addBtn}>+ 그룹 추가</button>
+        </div>
       </div>
 
       <div style={styles.submitArea}>

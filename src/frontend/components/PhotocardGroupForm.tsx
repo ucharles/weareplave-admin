@@ -145,16 +145,11 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
             >
               <div style={styles.itemFields}>
                 <span style={styles.itemDragHandle}>⠿</span>
-                <select
-                  value={Array.isArray(item.member) ? item.member[0] ?? "" : item.member ?? ""}
-                  onChange={(e) => updateItem(i, { ...item, member: e.target.value || undefined })}
-                  style={styles.memberSelect}
-                >
-                  <option value="">멤버 없음</option>
-                  {members.map((m) => (
-                    <option key={m.uuid} value={m.uuid}>{m.ko}</option>
-                  ))}
-                </select>
+                <MemberSelect
+                  value={item.member}
+                  members={members}
+                  onChange={(v) => updateItem(i, { ...item, member: v })}
+                />
                 <input
                   value={item.alias ?? ""}
                   onChange={(e) => updateItem(i, { ...item, alias: e.target.value || undefined })}
@@ -225,6 +220,90 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
       )}
     </div>
     </>
+  );
+}
+
+function MemberSelect({ value, members, onChange }: {
+  value?: string | string[];
+  members: Member[];
+  onChange: (v: string | string[] | undefined) => void;
+}) {
+  // 현재 모드 판별: none / solo / unit / group
+  const currentMode = !value ? "none"
+    : typeof value === "string" ? "solo"
+    : value.length === 5 ? "group"
+    : "unit";
+
+  const soloValue = typeof value === "string" ? value : "";
+  const unitValues = Array.isArray(value) && value.length < 5 ? value : [];
+
+  const handleModeChange = (mode: string) => {
+    if (mode === "none") onChange(undefined);
+    else if (mode === "solo") onChange(members[0]?.uuid ?? "");
+    else if (mode === "group") onChange(members.map((m) => m.uuid));
+    else if (mode === "unit") onChange([]);
+  };
+
+  const toggleUnit = (uuid: string) => {
+    const current = Array.isArray(value) ? value : [];
+    if (current.includes(uuid)) {
+      const next = current.filter((v) => v !== uuid);
+      onChange(next.length === 0 ? undefined : next);
+    } else {
+      onChange([...current, uuid]);
+    }
+  };
+
+  return (
+    <div style={{ display: "flex", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+      <select
+        value={currentMode}
+        onChange={(e) => handleModeChange(e.target.value)}
+        style={styles.memberSelect}
+      >
+        <option value="none">멤버 없음</option>
+        <option value="solo">솔로</option>
+        <option value="unit">유닛</option>
+        <option value="group">그룹 (5명)</option>
+      </select>
+
+      {currentMode === "solo" && (
+        <select
+          value={soloValue}
+          onChange={(e) => onChange(e.target.value)}
+          style={styles.memberSelect}
+        >
+          {members.map((m) => (
+            <option key={m.uuid} value={m.uuid}>{m.ko}</option>
+          ))}
+        </select>
+      )}
+
+      {currentMode === "unit" && (
+        <div style={{ display: "flex", gap: 4 }}>
+          {members.map((m) => (
+            <button
+              key={m.uuid}
+              type="button"
+              onClick={() => toggleUnit(m.uuid)}
+              style={{
+                padding: "2px 8px",
+                border: "1px solid",
+                borderColor: unitValues.includes(m.uuid) ? "#2563eb" : "#d1d5db",
+                borderRadius: 4,
+                background: unitValues.includes(m.uuid) ? "#eff6ff" : "#fff",
+                color: unitValues.includes(m.uuid) ? "#2563eb" : "#666",
+                cursor: "pointer",
+                fontSize: 12,
+                fontWeight: unitValues.includes(m.uuid) ? 600 : 400,
+              }}
+            >
+              {m.ko}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
