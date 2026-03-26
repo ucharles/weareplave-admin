@@ -1,0 +1,20 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "cardlist-admin",
+  "main": "dist/worker/index.js",
+  "compatibility_date": "2024-11-01",
+  "assets": {
+    "directory": "dist/client"
+  },
+  "kv_namespaces": [
+    {
+      "binding": "CARDLIST_KV",
+      "id": "50e3b9a942314331898fa22f656f2102"
+    }
+  ],
+  "vars": {
+    "ADMIN_TOKEN": "changeme",
+    "REVALIDATE_URL": "https://weareplave.com/api/revalidate",
+    "REVALIDATE_SECRET": "changeme"
+  }
+}
