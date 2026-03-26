@@ -1,12 +1,13 @@
 import React, { useState } from "react";
-import type { ICard, Member, Theme, PhotocardGroup } from "../../types";
-import { CARD_TYPES } from "../../seed";
+import type { ICard, Member, Theme, CardType, PhotocardGroup } from "../../types";
 import { PhotocardGroupForm } from "./PhotocardGroupForm";
+import { useDragReorder } from "../hooks/useDragReorder";
 
 interface Props {
   card?: ICard;
   members: Member[];
   themes: Theme[];
+  cardTypes: CardType[];
   onSave: (card: ICard) => void;
   onCancel: () => void;
 }
@@ -20,8 +21,11 @@ function newCard(): ICard {
   };
 }
 
-export function CardForm({ card, members, themes, onSave, onCancel }: Props) {
+export function CardForm({ card, members, themes, cardTypes, onSave, onCancel }: Props) {
   const [form, setForm] = useState<ICard>(card ? structuredClone(card) : newCard());
+  const [pathPrefix, setPathPrefix] = useState(
+    card ? `photocards/${card.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : "photocards/"
+  );
 
   const handleThemeChange = (uuid: string) => {
     const t = themes.find((th) => th.uuid === uuid);
@@ -44,6 +48,11 @@ export function CardForm({ card, members, themes, onSave, onCancel }: Props) {
   const removeGroup = (index: number) => {
     setForm({ ...form, photocards: form.photocards.filter((_, i) => i !== index) });
   };
+
+  const { dragHandlers: groupDragHandlers, getDragStyle: getGroupDragStyle } = useDragReorder(
+    form.photocards,
+    (reordered) => setForm({ ...form, photocards: reordered }),
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -69,7 +78,7 @@ export function CardForm({ card, members, themes, onSave, onCancel }: Props) {
             onChange={(e) => setForm({ ...form, type: e.target.value })}
             style={styles.select}
           >
-            {CARD_TYPES.map((t) => (
+            {cardTypes.map((t) => (
               <option key={t.value} value={t.value}>{t.label}</option>
             ))}
           </select>
@@ -100,6 +109,16 @@ export function CardForm({ card, members, themes, onSave, onCancel }: Props) {
         />
       </label>
 
+      <label style={styles.label}>
+        S3 경로 프리픽스
+        <input
+          value={pathPrefix}
+          onChange={(e) => setPathPrefix(e.target.value)}
+          placeholder="photocards/collab/gs25"
+          style={{ ...styles.input, fontFamily: "monospace" }}
+        />
+      </label>
+
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
           <h3>포토카드 그룹 ({form.photocards.length})</h3>
@@ -107,14 +126,16 @@ export function CardForm({ card, members, themes, onSave, onCancel }: Props) {
         </div>
 
         {form.photocards.map((group, i) => (
-          <PhotocardGroupForm
-            key={i}
-            group={group}
-            index={i}
-            members={members}
-            onChange={(g) => updateGroup(i, g)}
-            onRemove={() => removeGroup(i)}
-          />
+          <div key={i} {...groupDragHandlers(i)} style={getGroupDragStyle(i)}>
+            <PhotocardGroupForm
+              group={group}
+              index={i}
+              members={members}
+              pathPrefix={pathPrefix}
+              onChange={(g) => updateGroup(i, g)}
+              onRemove={() => removeGroup(i)}
+            />
+          </div>
         ))}
       </div>
 

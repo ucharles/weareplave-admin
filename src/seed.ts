@@ -1,4 +1,4 @@
-import type { Member, Theme } from "./types";
+import type { Member, Theme, CardType } from "./types";
 
 // 기존 weareplave 프로젝트의 멤버/테마 데이터
 export const MEMBERS: Member[] = [
@@ -38,7 +38,7 @@ export const THEMES: Theme[] = [
   { uuid: "71fffd77-23e2-4ac6-bbf5-e0f1ca35988f", en: "GS25", ko: "GS25" },
 ];
 
-export const CARD_TYPES = [
+export const CARD_TYPES: CardType[] = [
   { value: "album", label: "앨범" },
   { value: "concert", label: "콘서트" },
   { value: "collaboration", label: "콜라보" },

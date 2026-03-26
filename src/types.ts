@@ -37,10 +37,16 @@ export interface Theme {
   alias?: string;
 }
 
+export interface CardType {
+  value: string;
+  label: string;
+}
+
 export interface CardListData {
   cards: ICard[];
   members: Member[];
   themes: Theme[];
+  cardTypes: CardType[];
   updatedAt: string;
 }
 
@@ -50,4 +56,8 @@ export interface Env {
   ADMIN_TOKEN: string;
   REVALIDATE_URL: string;
   REVALIDATE_SECRET: string;
+  AWS_ACCESS_KEY_ID: string;
+  AWS_SECRET_ACCESS_KEY: string;
+  AWS_S3_BUCKET: string;
+  AWS_S3_REGION: string;
 }

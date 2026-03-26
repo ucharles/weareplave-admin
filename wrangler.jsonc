@@ -13,8 +13,8 @@
     }
   ],
   "vars": {
-    "ADMIN_TOKEN": "changeme",
     "REVALIDATE_URL": "https://weareplave.com/api/revalidate",
-    "REVALIDATE_SECRET": "changeme"
+    "AWS_S3_BUCKET": "weareplave",
+    "AWS_S3_REGION": "ap-northeast-2"
   }
 }
