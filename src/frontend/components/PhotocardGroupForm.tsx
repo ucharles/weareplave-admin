@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import type { PhotocardGroup, PhotocardItem, Member } from "../../types";
 import { useDragReorder } from "../hooks/useDragReorder";
 import { api } from "../api";
-import { applyWatermark } from "../watermark";
+import { applyWatermark, convertToWebp } from "../watermark";
 import { ImagePreview } from "./ImagePreview";
 
 interface Props {
@@ -20,6 +20,7 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [bulkUploading, setBulkUploading] = useState(false);
   const [bulkProgress, setBulkProgress] = useState("");
+  const [enableWatermark, setEnableWatermark] = useState(false);
   const bulkRef = useRef<HTMLInputElement>(null);
 
   const { dragHandlers: itemDragHandlers, getDragStyle: getItemDragStyle } = useDragReorder(
@@ -61,9 +62,9 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
     const item = group.items[itemIndex];
     const key = `${itemIndex}-${field}`;
 
-    setUploading((prev) => ({ ...prev, [key]: "워터마크 적용 중..." }));
+    setUploading((prev) => ({ ...prev, [key]: enableWatermark ? "워터마크 적용 중..." : "변환 중..." }));
     try {
-      const blob = await applyWatermark(file);
+      const blob = enableWatermark ? await applyWatermark(file) : await convertToWebp(file);
       setUploading((prev) => ({ ...prev, [key]: "업로드 중..." }));
 
       const filename = file.name.replace(/\.[^.]+$/, ".webp");
@@ -96,7 +97,7 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
       setBulkProgress(`(${i + 1}/${fileArray.length}) ${file.name}`);
 
       try {
-        const blob = await applyWatermark(file);
+        const blob = enableWatermark ? await applyWatermark(file) : await convertToWebp(file);
         const filename = file.name.replace(/\.[^.]+$/, ".webp");
         const path = `${prefix}${filename}`;
         const result = await api.uploadImage(blob, path);
@@ -194,6 +195,14 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
           ))}
 
           <div style={styles.bottomActions}>
+            <label style={styles.checkLabel}>
+              <input
+                type="checkbox"
+                checked={enableWatermark}
+                onChange={(e) => setEnableWatermark(e.target.checked)}
+              />
+              워터마크 적용
+            </label>
             <button type="button" onClick={addItem} style={styles.addItemBtn}>+ 포토카드 추가</button>
             <button type="button" onClick={addMemberSet} style={styles.memberSetBtn}>+ 5멤버 세트</button>
             <button
@@ -353,6 +362,7 @@ const styles: Record<string, React.CSSProperties> = {
   thumbnail: { width: 72, height: 72, objectFit: "cover" as const, borderRadius: 4, background: "#f0f0f0", flexShrink: 0, cursor: "pointer" },
   removeItemBtn: { marginLeft: "auto", background: "none", border: "none", color: "#999", cursor: "pointer", fontSize: 16, padding: "2px 6px" },
   bottomActions: { display: "flex", gap: 8, alignItems: "center" },
+  checkLabel: { display: "flex", alignItems: "center", gap: 4, fontSize: 13, color: "#374151", cursor: "pointer", userSelect: "none" as const },
   addItemBtn: { padding: "6px 14px", border: "1px dashed #aaa", borderRadius: 6, background: "#fff", cursor: "pointer", fontSize: 13, color: "#666" },
   memberSetBtn: { padding: "6px 14px", border: "1px solid #7c3aed", borderRadius: 6, background: "#f5f3ff", color: "#7c3aed", cursor: "pointer", fontSize: 13, fontWeight: 500 },
   bulkBtn: { padding: "6px 14px", border: "1px solid #059669", borderRadius: 6, background: "#ecfdf5", color: "#059669", cursor: "pointer", fontSize: 13, fontWeight: 500 },

@@ -63,6 +63,34 @@ export async function applyWatermark(file: File): Promise<Blob> {
   });
 }
 
+/** 워터마크 없이 리사이즈 + WebP 변환만 수행 */
+export async function convertToWebp(file: File): Promise<Blob> {
+  const img = await loadImage(file);
+
+  let width = img.width;
+  let height = img.height;
+  if (width > MAX_WIDTH) {
+    height = Math.round(height * (MAX_WIDTH / width));
+    width = MAX_WIDTH;
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  canvas.getContext("2d")!.drawImage(img, 0, 0, width, height);
+
+  return new Promise((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error("Canvas to blob failed"));
+      },
+      "image/webp",
+      0.8,
+    );
+  });
+}
+
 function loadImage(file: File): Promise<HTMLImageElement> {
   return new Promise((resolve, reject) => {
     const img = new Image();
