@@ -59,6 +59,16 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, collapse
     onChange({ ...group, items: group.items.filter((_, i) => i !== itemIndex) });
   };
 
+  const buildFilename = (item: PhotocardItem, field?: "image" | "backImage") => {
+    const groupPart = group.infoName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "") || "group";
+    const memberUuid = typeof item.member === "string" ? item.member : undefined;
+    const member = memberUuid ? members.find((m) => m.uuid === memberUuid) : undefined;
+    const memberPart = member ? `_${member.en.toLowerCase()}` : "";
+    const hash = crypto.randomUUID().slice(0, 6);
+    const suffix = field === "backImage" ? "_back" : "";
+    return `${groupPart}${memberPart}_${hash}${suffix}.webp`;
+  };
+
   const handleFileUpload = async (itemIndex: number, file: File, field: "image" | "backImage") => {
     const item = group.items[itemIndex];
     const key = `${itemIndex}-${field}`;
@@ -68,10 +78,9 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, collapse
       const blob = enableWatermark ? await applyWatermark(file) : await convertToWebp(file);
       setUploading((prev) => ({ ...prev, [key]: "업로드 중..." }));
 
-      const filename = file.name.replace(/\.[^.]+$/, ".webp");
       const prefix = pathPrefix.endsWith("/") ? pathPrefix : pathPrefix + "/";
-      const suffix = field === "backImage" ? "_back" : "";
-      const path = `${prefix}${filename.replace(".webp", `${suffix}.webp`)}`;
+      const filename = buildFilename(item, field);
+      const path = `${prefix}${filename}`;
 
       const result = await api.uploadImage(blob, path);
       updateItem(itemIndex, { ...item, [field]: result.url });
@@ -99,7 +108,9 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, collapse
 
       try {
         const blob = enableWatermark ? await applyWatermark(file) : await convertToWebp(file);
-        const filename = file.name.replace(/\.[^.]+$/, ".webp");
+        const groupPart = group.infoName.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "") || "group";
+        const hash = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+        const filename = `${groupPart}_${hash}.webp`;
         const path = `${prefix}${filename}`;
         const result = await api.uploadImage(blob, path);
 
