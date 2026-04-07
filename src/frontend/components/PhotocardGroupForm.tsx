@@ -10,12 +10,13 @@ interface Props {
   index: number;
   members: Member[];
   pathPrefix: string;
+  collapsed: boolean;
+  onToggleCollapse: () => void;
   onChange: (group: PhotocardGroup) => void;
   onRemove: () => void;
 }
 
-export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange, onRemove }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
+export function PhotocardGroupForm({ group, index, members, pathPrefix, collapsed, onToggleCollapse, onChange, onRemove }: Props) {
   const [uploading, setUploading] = useState<Record<string, string>>({});
   const [previewSrc, setPreviewSrc] = useState<string | null>(null);
   const [bulkUploading, setBulkUploading] = useState(false);
@@ -123,7 +124,7 @@ export function PhotocardGroupForm({ group, index, members, pathPrefix, onChange
     <div style={styles.groupCard}>
       <div style={styles.groupHeader}>
         <span style={styles.dragHandle}>⠿</span>
-        <button type="button" onClick={() => setCollapsed(!collapsed)} style={styles.collapseBtn}>
+        <button type="button" onClick={onToggleCollapse} style={styles.collapseBtn}>
           {collapsed ? "▶" : "▼"}
         </button>
         <input

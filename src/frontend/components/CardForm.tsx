@@ -23,6 +23,20 @@ function newCard(): ICard {
 
 export function CardForm({ card, members, themes, cardTypes, onSave, onCancel }: Props) {
   const [form, setForm] = useState<ICard>(card ? structuredClone(card) : newCard());
+  const [collapsedMap, setCollapsedMap] = useState<Record<number, boolean>>({});
+  const isCollapsed = (i: number) => collapsedMap[i] ?? true;
+  const toggleCollapse = (i: number) => setCollapsedMap((prev) => ({ ...prev, [i]: !isCollapsed(i) }));
+  const expandAll = () => {
+    const next: Record<number, boolean> = {};
+    form.photocards.forEach((_, i) => { next[i] = false; });
+    setCollapsedMap(next);
+  };
+  const collapseAll = () => {
+    const next: Record<number, boolean> = {};
+    form.photocards.forEach((_, i) => { next[i] = true; });
+    setCollapsedMap(next);
+  };
+
   const [pathPrefix, setPathPrefix] = useState(
     card ? `photocards/${card.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : "photocards/"
   );
@@ -122,7 +136,11 @@ export function CardForm({ card, members, themes, cardTypes, onSave, onCancel }:
       <div style={styles.section}>
         <div style={styles.sectionHeader}>
           <h3>포토카드 그룹 ({form.photocards.length})</h3>
-          <button type="button" onClick={addGroup} style={styles.addBtn}>+ 그룹 추가</button>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button type="button" onClick={expandAll} style={styles.expandBtn}>일괄 펼치기</button>
+            <button type="button" onClick={collapseAll} style={styles.expandBtn}>일괄 닫기</button>
+            <button type="button" onClick={addGroup} style={styles.addBtn}>+ 그룹 추가</button>
+          </div>
         </div>
 
         {form.photocards.map((group, i) => (
@@ -132,6 +150,8 @@ export function CardForm({ card, members, themes, cardTypes, onSave, onCancel }:
               index={i}
               members={members}
               pathPrefix={pathPrefix}
+              collapsed={isCollapsed(i)}
+              onToggleCollapse={() => toggleCollapse(i)}
               onChange={(g) => updateGroup(i, g)}
               onRemove={() => removeGroup(i)}
             />
@@ -162,6 +182,7 @@ const styles: Record<string, React.CSSProperties> = {
   section: { marginTop: 24, borderTop: "1px solid #e5e7eb", paddingTop: 20 },
   sectionHeader: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 },
   addBtn: { padding: "6px 14px", border: "1px solid #2563eb", borderRadius: 6, background: "#eff6ff", color: "#2563eb", cursor: "pointer", fontSize: 13 },
+  expandBtn: { padding: "6px 14px", border: "1px solid #6b7280", borderRadius: 6, background: "#f9fafb", color: "#374151", cursor: "pointer", fontSize: 13 },
   submitArea: { marginTop: 24, display: "flex", justifyContent: "flex-end" },
   submitBtn: { padding: "10px 32px", border: "none", borderRadius: 8, background: "#2563eb", color: "#fff", cursor: "pointer", fontSize: 15, fontWeight: 600 },
 };
